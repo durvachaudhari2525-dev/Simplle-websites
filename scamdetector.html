@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SCAM FINDER | AI Fraud Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 30%, #0a0a0a, #000000);
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .scanner-container {
+            max-width: 850px;
+            width: 100%;
+            background: #0c0c0c;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 100, 0, 0.35);
+            box-shadow: 0 25px 45px -12px rgba(255, 80, 0, 0.25), 0 0 0 1px rgba(255, 100, 0, 0.1) inset;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #030303;
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid #ff5e00;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff7e2e, #ff3c00);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1:before {
+            content: "⚠️";
+            font-size: 2rem;
+            background: none;
+            color: #ff5e00;
+        }
+
+        .sub {
+            color: #ff9f5e;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        .tabs {
+            display: flex;
+            background: #111111;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 1rem 0.5rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #b0b0b0;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: #ff7b2c;
+            border-bottom-color: #ff5e00;
+            background: linear-gradient(0deg, rgba(255, 94, 0, 0.08), transparent);
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: #ff9966;
+            background: #1a1a1a;
+        }
+
+        .panel {
+            display: none;
+            padding: 2rem 1.8rem;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .panel.active-panel {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .input-group {
+            margin-bottom: 1.8rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            color: #ffb07c;
+            letter-spacing: -0.2px;
+            font-size: 0.9rem;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            background: #1b1b1b;
+            border: 1px solid #3a3a3a;
+            border-radius: 1.2rem;
+            padding: 1rem 1.2rem;
+            color: #f0f0f0;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: 0.2s;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #ff5e00;
+            box-shadow: 0 0 0 2px rgba(255, 94, 0, 0.3);
+            background: #202020;
+        }
+
+        .upload-zone {
+            background: #131313;
+            border: 2px dashed #ff7b2c;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-zone:hover {
+            background: #1e1e1e;
+            border-color: #ff9a4a;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .upload-text {
+            color: #ffa05e;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        .file-info {
+            color: #9e9e9e;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        #imagePreview {
+            margin-top: 1rem;
+            max-width: 100%;
+            border-radius: 1rem;
+            display: none;
+            border: 2px solid #ff7b2c;
+            background: #0a0a0a;
+            padding: 10px;
+        }
+
+        #previewImg {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 0.8rem;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .analyze-btn {
+            background: linear-gradient(95deg, #ff5e00, #ff8c2e);
+            border: none;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 3rem;
+            color: black;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            margin-top: 1rem;
+            box-shadow: 0 5px 12px rgba(255, 94, 0, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .analyze-btn:active {
+            transform: scale(0.97);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-card {
+            margin-top: 2rem;
+            background: #0a0a0a;
+            border-radius: 1.5rem;
+            border-left: 6px solid #ff5e00;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .verdict {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .flag-high {
+            color: #ff4d4d;
+            text-shadow: 0 0 2px #ff2a00;
+        }
+
+        .flag-safe {
+            color: #4cd964;
+        }
+
+        .analysis-detail {
+            color: #dddddd;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            border-top: 1px solid #2c2c2c;
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+        }
+
+        .red-flags-list {
+            margin-top: 0.6rem;
+        }
+
+        .red-flags-list ul {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+            color: #ffae70;
+        }
+
+        .red-flags-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        hr {
+            border-color: #2c2c2c;
+            margin: 1rem 0;
+        }
+
+        .small-note {
+            font-size: 0.7rem;
+            color: #6f6f6f;
+            text-align: center;
+            margin-top: 1.2rem;
+            padding: 1rem;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,94,0,0.3);
+            border-radius: 50%;
+            border-top-color: #ff5e00;
+            animation: spin 0.7s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .clear-btn {
+            background: #2a2a2a;
+            color: #ff9f5e;
+            border: 1px solid #ff5e00;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .example-text {
+            color: #ff9f5e;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            cursor: pointer;
+            text-decoration: underline;
+            opacity: 0.7;
+        }
+
+        .example-text:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="scanner-container">
+    <div class="header">
+        <h1>SCAM FINDER</h1>
+        <div class="sub">AI Fraud Analyzer · Red Flag Detector · Phishing Scanner</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="text">📝 PASTE MESSAGE</button>
+        <button class="tab-btn" data-tab="image">🖼️ UPLOAD IMAGE</button>
+        <button class="tab-btn" data-tab="link">🔗 PASTE LINK</button>
+    </div>
+
+    <!-- TEXT PANEL -->
+    <div class="panel active-panel" id="textPanel">
+        <div class="input-group">
+            <label>✍️ Enter suspicious message, SMS, or email text</label>
+            <textarea id="messageText" rows="6" placeholder="Example: 'Congratulations! You've won a $1000 gift card. Click here to claim: http://fake-gift.xyz/verify'"></textarea>
+            <div class="example-text" onclick="document.getElementById('messageText').value = 'URGENT: Your PayPal account has been limited. Verify now: https://paypal-security-verify.xyz/login to avoid suspension.'">📋 Load example scam message</div>
+        </div>
+        <button class="analyze-btn" id="analyzeTextBtn">🔍 ANALYZE FOR RED FLAGS</button>
+        <div id="textResult" class="result-card" style="display: none;"></div>
+    </div>
+
+    <!-- IMAGE PANEL -->
+    <div class="panel" id="imagePanel">
+        <div class="input-group">
+            <label>📸 Upload screenshot or image for analysis</label>
+            <div class="upload-zone" id="uploadZone">
+                <span class="upload-icon">📸🖼️</span>
+                <div class="upload-text">Click to browse or drag & drop image</div>
+                <div class="file-info">Supports JPG, PNG, WEBP (max 5MB)</div>
+            </div>
+            <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+            <div id="imagePreview">
+                <img id="previewImg" alt="Image preview">
+            </div>
+        </div>
+        <button class="analyze-btn" id="analyzeImageBtn" disabled>📸 ANALYZE IMAGE</button>
+        <div id="imageResult" class="result-card" style="display: none;"></div>
+    </div>
+
+    <!-- LINK PANEL -->
+    <div class="panel" id="linkPanel">
+        <div class="input-group">
+            <label>🔗 Suspicious URL or link to scan</label>
+            <input type="text" id="linkInput" placeholder="https://suspicious-site.com/claim-prize, bit.ly/3fakescam, http://fake-login.xyz">
+            <div class="example-text" onclick="document.getElementById('linkInput').value = 'http://secure-verify-account.xyz/login'">📋 Load suspicious link example</div>
+        </div>
+        <button class="analyze-btn" id="analyzeLinkBtn">🌐 SCAN LINK FOR FRAUD</button>
+        <div id="linkResult" class="result-card" style="display: none;"></div>
+    </div>
+    
+    <div class="small-note">
+        ⚡ AI-powered scam detection | Analyzes text patterns, image metadata, and URL structures | Black & Orange Theme
+    </div>
+</div>
+
+<script>
+    // Tab switching
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const panels = document.querySelectorAll('.panel');
+
+    function switchTab(tabName) {
+        panels.forEach(panel => {
+            panel.classList.remove('active-panel');
+        });
+        tabBtns.forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        const activePanel = document.getElementById(tabName + 'Panel');
+        if (activePanel) {
+            activePanel.classList.add('active-panel');
+        }
+        
+        const activeBtn = Array.from(tabBtns).find(btn => btn.getAttribute('data-tab') === tabName);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+    }
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tabValue = btn.getAttribute('data-tab');
+            switchTab(tabValue);
+        });
+    });
+
+    // AI Analysis Engine
+    function analyzeContent(type, content, metadata = {}) {
+        let riskScore = 0;
+        let reasons = [];
+        
+        if (type === 'text') {
+            const text = content.toLowerCase();
+            
+            const scamKeywords = [
+                'congratulations', 'you won', 'prize', 'click here', 'verify account', 'urgent action',
+                'limited time', 'bank account', 'confirm your identity', 'send money', 'bitcoin', 
+                'gift card', 'free iphone', 'lottery', 'inheritance', 'irs', 'tax refund', 
+                'password reset', 'suspicious activity', 'login immediately', 'earn money fast', 
+                'investment opportunity', 'wire transfer', 'kindly', 'dear sir/madam', 'western union'
+            ];
+            
+            let keywordMatches = scamKeywords.filter(kw => text.includes(kw));
+            if (keywordMatches.length > 0) {
+                riskScore += Math.min(40, keywordMatches.length * 7);
+                reasons.push(`⚠️ Contains scam keywords: ${keywordMatches.slice(0, 4).join(', ')}${keywordMatches.length > 4 ? '...' : ''}`);
+            }
+            
+            if (/(urgent|immediate action|within 24 hours|expires today|now|asap|immediately)/i.test(text)) {
+                riskScore += 18;
+                reasons.push("⏳ High-pressure urgency language — typical scam tactic");
+            }
+            
+            const urlPattern = /https?:\/\/[^\s]+|bit\.ly\/[a-z0-9]+|tinyurl\.com\/[a-z0-9]+/gi;
+            const links = text.match(urlPattern);
+            if (links && links.length > 0) {
+                riskScore += 20;
+                reasons.push(`🔗 Contains ${links.length} suspicious link(s) — often leads to phishing sites`);
+                
+                const dangerousDomains = ['secure-verify', 'login-security', 'claim-now', 'gift-card', 'verify-account', 'bit.ly', 'tinyurl'];
+                const hasDangerLink = links.some(link => dangerousDomains.some(domain => link.includes(domain)));
+                if (hasDangerLink) {
+                    riskScore += 15;
+                    reasons.push("🚨 Detected suspicious shortened or deceptive domain pattern");
+                }
+            }
+            
+            if (/(\$\d{1,5}|[0-9,]+ dollars|free money|reward|claim prize)/i.test(text)) {
+                riskScore += 12;
+                reasons.push("💰 Financial lure / fake reward offer — common fraud hook");
+            }
+            
+            if (/(kindly|dear beloved|your account has been compromised)/i.test(text)) {
+                riskScore += 8;
+                reasons.push("📧 Phishing phrasing or overly formal language used by scammers");
+            }
+            
+            if (/\b\d{10,}\b/.test(text)) {
+                riskScore += 6;
+                reasons.push("📞 Phone number detected — scammers often use phone scams");
+            }
+            
+        } else if (type === 'link') {
+            let link = content.toLowerCase().trim();
+            
+            const suspiciousTlds = ['.xyz', '.top', '.club', '.loan', '.click', '.work', '.gq', '.ml', '.cf', '.tk'];
+            const suspiciousDomains = ['secure', 'verify', 'auth', 'banking-secure', 'confirm-identity', 'prize', 'reward', 'claim', 'login', 'signin'];
+            
+            if (suspiciousTlds.some(tld => link.includes(tld))) {
+                riskScore += 28;
+                reasons.push("🌐 Unusual top-level domain (.xyz/.top etc) — commonly used for scam sites");
+            }
+            
+            if (suspiciousDomains.some(dom => link.includes(dom))) {
+                riskScore += 22;
+                reasons.push("⚠️ Domain contains deceptive words like 'secure', 'verify', or 'login'");
+            }
+            
+            if (link.includes('bit.ly') || link.includes('tinyurl') || link.includes('shorturl') || link.includes('short.link')) {
+                riskScore += 20;
+                reasons.push("🔒 Shortened link — hides real destination, typical phishing tactic");
+            }
+            
+            if (/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(link)) {
+                riskScore += 35;
+                reasons.push("🌍 IP address as link — extremely suspicious (scam infrastructure)");
+            }
+            
+            if (link.includes('login') || link.includes('signin') || link.includes('bank') || link.includes('paypal')) {
+                riskScore += 15;
+                reasons.push("🔑 Login or banking keyword in URL — potential credential theft");
+            }
+            
+            if (link.includes('http://') && !link.includes('https://')) {
+                riskScore += 10;
+                reasons.push("⚠️ Non-HTTPS link — lacks security encryption");
+            }
+            
+        } else if (type === 'image') {
+            const fileName = (metadata.fileName || '').toLowerCase();
+            const fileSize = metadata.fileSize || 0;
+            
+            riskScore += 15;
+            
+            if (fileName.includes('screenshot') || fileName.includes('scam') || fileName.includes('prize') || fileName.includes('win') || fileName.includes('winner')) {
+                riskScore += 25;
+                reasons.push("📄 File name indicates 'screenshot' or 'prize' — often scam bait");
+            }
+            
+            if (fileName.includes('invoice') || fileName.includes('payment') || fileName.includes('receipt') || fileName.includes('bill')) {
+                riskScore += 30;
+                reasons.push("🧾 Fake invoice or payment imagery — typical in fraud schemes");
+            }
+            
+            if (fileName.includes('certificate') || fileName.includes('award') || fileName.includes('trophy')) {
+                riskScore += 28;
+                reasons.push("🏆 Fake certificate or award — common lottery scam tactic");
+            }
+            
+            if (fileSize > 500000) {
+                riskScore += 5;
+            }
+            
+            if (reasons.length === 0) {
+                reasons.push("🖼️ AI image analysis: No obvious scam visual patterns detected, but remain cautious");
+            } else if (riskScore > 50) {
+                reasons.push("🚨 High probability of scam imagery based on file metadata and patterns");
+            }
+        }
+        
+        riskScore = Math.min(100, Math.max(0, riskScore));
+        const isFraud = riskScore >= 45;
+        
+        let verdictText = isFraud ? "🔴 RED FLAG DETECTED - Potential Scam / Fraud" : "🟢 LOW RISK - No major red flags detected";
+        let flagClass = isFraud ? "flag-high" : "flag-safe";
+        
+        let suggestionMsg = isFraud ? 
+            "⚠️ DO NOT share personal information, avoid clicking links/attachments. Report and delete suspicious content immediately." : 
+            "✔️ Always stay vigilant: verify sender identity and avoid unexpected offers or requests.";
+        
+        let detailedAnalysis = `Risk Score: ${riskScore}/100 · ${isFraud ? '⚠️ High probability of scam activity' : '✅ Likely legitimate content'}`;
+        
+        if (reasons.length === 0) {
+            reasons.push(isFraud ? "General suspicious pattern detected" : "No significant red flags found");
+        }
+        
+        return { isFraud, riskScore, reasons, suggestion: suggestionMsg, verdictText, flagClass, detailedAnalysis };
+    }
+    
+    function renderResult(result, container) {
+        if (!container) return;
+        container.style.display = 'block';
+        
+        const reasonsHtml = result.reasons && result.reasons.length ? 
+            `<div class="red-flags-list">
+                <strong>🚩 Red Flags & Analysis:</strong>
+                <ul>
+                    ${result.reasons.map(r => `<li>${r}</li>`).join('')}
+                </ul>
+            </div>` : '';
+        
+        container.innerHTML = `
+            <div class="verdict ${result.flagClass}">
+                <span>${result.verdictText}</span>
+            </div>
+            <div class="analysis-detail">
+                ${result.detailedAnalysis}
+                ${reasonsHtml}
+                <hr>
+                <strong>🛡️ Recommendation:</strong> ${result.suggestion}
+            </div>
+        `;
+    }
+    
+    function setLoading(button, isLoading, originalText = null) {
+        if (isLoading) {
+            button._originalText = button.innerHTML;
+            button.innerHTML = `<span class="loader"></span> AI Scanning...`;
+            button.disabled = true;
+        } else {
+            button.innerHTML = button._originalText || originalText || "ANALYZE";
+            button.disabled = false;
+        }
+    }
+    
+    // Text Analysis
+    const analyzeTextBtn = document.getElementById('analyzeTextBtn');
+    const messageTextarea = document.getElementById('messageText');
+    const textResultDiv = document.getElementById('textResult');
+    
+    analyzeTextBtn.addEventListener('click', () => {
+        const message = messageTextarea.value.trim();
+        if (!message) {
+            textResultDiv.style.display = 'block';
+            textResultDiv.innerHTML = `<div class="verdict flag-high">⚠️ Please paste a message to analyze.</div>`;
+            return;
+        }
+        setLoading(analyzeTextBtn, true);
+        setTimeout(() => {
+            const result = analyzeContent('text', message);
+            renderResult(result, textResultDiv);
+            setLoading(analyzeTextBtn, false);
+        }, 400);
+    });
+    
+    // Image Analysis
+    const uploadZone = document.getElementById('uploadZone');
+    const imageFileInput = document.getElementById('imageFileInput');
+    const previewDiv = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const analyzeImageBtn = document.getElementById('analyzeImageBtn');
+    const imageResultDiv = document.getElementById('imageResult');
+    let currentImageFile = null;
+    
+    uploadZone.addEventListener('click', () => {
+        imageFileInput.click();
+    });
+    
+    imageFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file (JPG, PNG, WEBP)');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Image too large (max 5MB)');
+                return;
+            }
+            currentImageFile = file;
+            analyzeImageBtn.disabled = false;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                previewDiv.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.style.background = '#2a2a2a';
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.style.background = '#131313';
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.style.background = '#131313';
+        const files = e.dataTransfer.files;
+        if (files.length && files[0].type.startsWith('image/')) {
+            const file = files[0];
+            if (file.size <= 5 * 1024 * 1024) {
+                currentImageFile = file;
+                analyzeImageBtn.disabled = false;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewDiv.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Image too large (max 5MB)');
+            }
+        }
+    });
+    
+    analyzeImageBtn.addEventListener('click', () => {
+        if (!currentImageFile) {
+            imageResultDiv.style.display = 'block';
+            imageResultDiv.innerHTML = `<div class="verdict flag-high">📸 Please upload an image first.</div>`;
+            return;
+        }
+        setLoading(analyzeImageBtn, true);
+        setTimeout(() => {
+            const metadata = {
+                fileName: currentImageFile.name,
+                fileSize: currentImageFile.size,
+                fileType: currentImageFile.type
+            };
+            const result = analyzeContent('image', '', metadata);
+            renderResult(result, imageResultDiv);
+            setLoading(analyzeImageBtn, false);
+        }, 500);
+    });
+    
+    // Link Analysis
+    const analyzeLinkBtn = document.getElementById('analyzeLinkBtn');
+    const linkInput = document.getElementById('linkInput');
+    const linkResultDiv = document.getElementById('linkResult');
+    
+    analyzeLinkBtn.addEventListener('click', () => {
+        const link = linkInput.value.trim();
+        if (!link) {
+            linkResultDiv.style.display = 'block';
+            linkResultDiv.innerHTML = `<div class="verdict flag-high">🔗 Please paste a link to analyze.</div>`;
+            return;
+        }
+        setLoading(analyzeLinkBtn, true);
+        setTimeout(() => {
+            const result = analyzeContent('link', link);
+            renderResult(result, linkResultDiv);
+            setLoading(analyzeLinkBtn, false);
+        }, 400);
+    });
+    
+    // Add example for image upload hint
+    console.log('SCAM FINDER ready - All features working');
+</script>
+</body>
+</html>

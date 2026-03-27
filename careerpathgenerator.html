@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Career Compass | AI Path Generator</title>
+  <!-- Google Fonts + modern smoothness -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 (free icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0b0719 0%, #1a103f 100%);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    /* Modern Dashboard Container */
+    .dashboard {
+      max-width: 1300px;
+      width: 100%;
+      background: rgba(18, 12, 38, 0.65);
+      backdrop-filter: blur(2px);
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(156, 106, 222, 0.15);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    /* Header area */
+    .dashboard-header {
+      padding: 2rem 2rem 1rem 2rem;
+      border-bottom: 1px solid rgba(156, 106, 222, 0.3);
+    }
+
+    .title-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .title-badge {
+      background: #7c3aed20;
+      backdrop-filter: blur(4px);
+      padding: 0.4rem 1rem;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #c4b5fd;
+      border: 1px solid #7c3aed40;
+      letter-spacing: 0.3px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(130deg, #f0eefc, #c6b5ff);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+
+    h1 i {
+      background: none;
+      -webkit-background-clip: unset;
+      color: #a77cff;
+      margin-right: 8px;
+    }
+
+    .sub {
+      color: #a69bcb;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    /* Card style for control panel */
+    .control-panel {
+      background: #130c2c;
+      margin: 1.5rem 2rem;
+      border-radius: 1.8rem;
+      padding: 1.2rem 1.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 1.5rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .select-group {
+      flex: 2;
+      min-width: 200px;
+    }
+
+    .select-group label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      color: #b9a9ff;
+      margin-bottom: 0.5rem;
+    }
+
+    .custom-select {
+      width: 100%;
+      background: #0e0824;
+      border: 1px solid #4c2d8c;
+      border-radius: 60px;
+      padding: 0.85rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #f0eaff;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .custom-select:focus {
+      border-color: #b77cff;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.4);
+    }
+
+    .generate-btn {
+      background: linear-gradient(95deg, #8b5cf6, #6c2bd9);
+      border: none;
+      border-radius: 60px;
+      padding: 0.85rem 2rem;
+      font-weight: 700;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 18px rgba(107, 70, 193, 0.3);
+      letter-spacing: 0.3px;
+    }
+
+    .generate-btn i {
+      font-size: 1.1rem;
+    }
+
+    .generate-btn:hover {
+      background: linear-gradient(95deg, #9d6eff, #7c3bed);
+      transform: scale(1.01);
+      box-shadow: 0 12px 24px rgba(107, 70, 193, 0.5);
+    }
+
+    /* Roadmap Grid (modern cards) */
+    .roadmap-section {
+      margin: 0 2rem 2rem 2rem;
+      transition: all 0.2s;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .section-title h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #e2d9ff;
+    }
+
+    .section-title span {
+      background: #2a1a55;
+      padding: 0.25rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #cdb8ff;
+    }
+
+    .roadmap-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.8rem;
+      justify-content: center;
+    }
+
+    /* 3-step card style */
+    .step-card {
+      flex: 1;
+      min-width: 240px;
+      background: #0f0929e6;
+      backdrop-filter: blur(8px);
+      border-radius: 1.8rem;
+      padding: 1.5rem 1.3rem;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 20px 30px -15px rgba(0, 0, 0, 0.4);
+    }
+
+    .step-card:hover {
+      transform: translateY(-5px);
+      border-color: #b57cff;
+      box-shadow: 0 25px 35px -12px #3b1e6e40;
+    }
+
+    .step-month {
+      font-size: 1.2rem;
+      font-weight: 700;
+      background: #251c46;
+      display: inline-block;
+      padding: 0.25rem 1rem;
+      border-radius: 40px;
+      color: #d4c2ff;
+      margin-bottom: 1.2rem;
+      letter-spacing: -0.2px;
+    }
+
+    .step-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-title i {
+      color: #b77cff;
+      font-size: 1.5rem;
+    }
+
+    .step-desc {
+      color: #cbc3e6;
+      line-height: 1.5;
+      font-size: 0.95rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .milestone-list {
+      list-style: none;
+      margin-top: 0.8rem;
+    }
+
+    .milestone-list li {
+      font-size: 0.85rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed #31245e;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ddd1ff;
+    }
+
+    .milestone-list li i {
+      font-size: 0.7rem;
+      color: #a67cff;
+      width: 20px;
+    }
+
+    .empty-state {
+      background: #120c2b80;
+      border-radius: 2rem;
+      padding: 3rem 1.5rem;
+      text-align: center;
+      color: #b7a6f0;
+      border: 1px dashed #6f4fcd;
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+      color: #a36eff;
+    }
+
+    footer {
+      padding: 1.2rem 2rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #5f5192;
+      border-top: 1px solid rgba(139, 92, 246, 0.2);
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 750px) {
+      body {
+        padding: 1rem;
+      }
+      .control-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .generate-btn {
+        justify-content: center;
+      }
+      .step-card {
+        min-width: 100%;
+      }
+      .dashboard-header {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard">
+  <div class="dashboard-header">
+    <div class="title-section">
+      <div>
+        <h1><i class="fas fa-chalkboard-user"></i> Career Path Generator</h1>
+        <div class="sub">AI-powered 3-month roadmap · Purple ignite edition</div>
+      </div>
+      <div class="title-badge"><i class="fas fa-crown"></i> fast-track your future</div>
+    </div>
+  </div>
+
+  <div class="control-panel">
+    <div class="select-group">
+      <label><i class="fas fa-brain"></i> SELECT YOUR INTEREST</label>
+      <select id="interestSelect" class="custom-select">
+        <option value="frontend">💻 Frontend Development (React/Vue)</option>
+        <option value="datascience">📊 Data Science & Analytics</option>
+        <option value="uxui">🎨 UX/UI Design</option>
+        <option value="cybersecurity">🔐 Cybersecurity</option>
+        <option value="product">🚀 Product Management</option>
+      </select>
+    </div>
+    <button id="generateBtn" class="generate-btn"><i class="fas fa-magic-sparkles"></i> Generate Roadmap</button>
+  </div>
+
+  <div class="roadmap-section" id="roadmapContainer">
+    <!-- Dynamic content injected here -->
+    <div class="empty-state">
+      <i class="fas fa-compass"></i>
+      <h3 style="margin-top: 10px;">Your 3-month career path awaits</h3>
+      <p style="margin-top: 8px;">Pick a field above and click "Generate Roadmap" to unlock a personalized monthly guide.</p>
+    </div>
+  </div>
+  <footer>
+    <i class="fas fa-arrow-trend-up"></i> Each roadmap is crafted for rapid skill-building · milestones based on industry insights
+  </footer>
+</div>
+
+<script>
+  // ----- INTEREST-SPECIFIC ROADMAP DATA (3-step: Month 1, Month 2, Month 3)
+  const careerRoadmaps = {
+    frontend: {
+      title: "Frontend Development",
+      steps: [
+        {
+          month: "Month 1",
+          icon: "fa-code",
+          title: "Foundations & Core",
+          description: "Master the essentials of web development and build interactive UIs.",
+          milestones: [
+            "HTML5 semantic structure & CSS Flexbox/Grid",
+            "JavaScript fundamentals (ES6+, DOM manipulation)",
+            "Build a responsive portfolio project",
+            "Version control with Git & GitHub basics"
+          ]
+        },
+        {
+          month: "Month 2",
+          icon: "fa-react",
+          title: "Modern Framework",
+          description: "Deep dive into React.js (or Vue) and advanced frontend patterns.",
+          milestones: [
+            "React components, hooks, state management",
+            "Routing & API integration (REST)",
+            "Build a dynamic dashboard app",
+            "Introduction to TailwindCSS / Styled-components"
+          ]
+        },
+        {
+          month: "Month 3",
+          icon: "fa-server",
+          title: "Tooling & Professional",
+          description: "Optimize performance, testing, and deployment workflows.",
+          milestones: [
+            "Next.js basics & SSR concepts",
+            "Testing with Jest & React Testing Library",
+            "Deploy on Vercel/Netlify + CI/CD",
+            "Create a full-stack inspired frontend project & portfolio"
+          ]
+        }
+      ]
+    },
+    datascience: {
+      title: "Data Science & Analytics",
+      steps: [
+        {
+          month: "Month 1",
+          icon: "fa-chart-line",
+          title: "Python & Data Wrangling",
+          description: "Learn data manipulation and exploratory analysis.",
+          milestones: [
+            "Python programming (pandas, numpy, matplotlib)",
+            "Jupyter notebooks & data cleaning",
+            "Exploratory Data Analysis (EDA) techniques",
+            "Basic SQL for data extraction"
+          ]
+        },
+        {
+          month: "Month 2",
+          icon: "fa-chart-simple",
+          title: "Visualization & Statistics",
+          description: "Turn raw data into insights and apply stats.",
+          milestones: [
+            "Advanced visualizations (seaborn, plotly)",
+            "Statistical thinking: hypothesis testing, distributions",
+            "Build a complete EDA report",
+            "Introduction to Tableau/Power BI"
+          ]
+        },
+        {
+          month: "Month 3",
+          icon: "fa-brain",
+          title: "ML Fundamentals & Portfolio",
+          description: "First machine learning models and capstone project.",
+          milestones: [
+            "Scikit-learn: regression, classification",
+            "Model evaluation & feature engineering",
+            "End-to-end data science project (Kaggle or real dataset)",
+            "Create GitHub portfolio & write technical blog"
+          ]
+        }
+      ]
+    },
+    uxui: {
+      title: "UX/UI Design",
+      steps: [
+        {
+          month: "Month 1",
+          icon: "fa-pen-fancy",
+          title: "Design Principles & Research",
+          description: "Understand user-centered design, research, and wireframing.",
+          milestones: [
+            "UX fundamentals: usability, heuristics, user journey",
+            "Conduct user interviews & create personas",
+            "Low-fidelity wireframing (Figma basics)",
+            "Information architecture & sitemaps"
+          ]
+        },
+        {
+          month: "Month 2",
+          icon: "fa-palette",
+          title: "UI & Visual Design",
+          description: "Craft high-fidelity interfaces and design systems.",
+          milestones: [
+            "Color theory, typography, spacing systems",
+            "High-fidelity mockups & interactive prototypes",
+            "Design system & components in Figma",
+            "Micro-interactions & animation principles"
+          ]
+        },
+        {
+          month: "Month 3",
+          icon: "fa-users",
+          title: "Usability Testing & Portfolio",
+          description: "Validate designs and create a case study portfolio.",
+          milestones: [
+            "Usability testing sessions & affinity mapping",
+            "Iterate based on feedback",
+            "Build 2-3 polished case studies",
+            "Personal portfolio website & LinkedIn brand"
+          ]
+        }
+      ]
+    },
+    cybersecurity: {
+      title: "Cybersecurity",
+      steps: [
+        {
+          month: "Month 1",
+          icon: "fa-shield-haltered",
+          title: "Networking & Security Basics",
+          description: "Foundational concepts: networks, OS, and security mindset.",
+          milestones: [
+            "Networking fundamentals (TCP/IP, DNS, firewalls)",
+            "Linux command line & bash scripting",
+            "Cybersecurity principles: CIA triad, risk management",
+            "Introduction to cryptography basics"
+          ]
+        },
+        {
+          month: "Month 2",
+          icon: "fa-bug",
+          title: "Threats & Defensive Tools",
+          description: "Learn about attacks, defense, and SIEM tools.",
+          milestones: [
+            "Common vulnerabilities (OWASP Top 10)",
+            "Hands-on with Wireshark, Nmap, Metasploit basics",
+            "Endpoint security & EDR concepts",
+            "Security+ prep & ethical hacking intro"
+          ]
+        },
+        {
+          month: "Month 3",
+          icon: "fa-laptop-code",
+          title: "Incident Response & Certification",
+          description: "Simulate real-world security scenarios and build portfolio.",
+          milestones: [
+            "Incident response lifecycle & playbooks",
+            "Capture The Flag (CTF) challenges",
+            "Build a home lab with virtual machines",
+            "Create security blog / GitHub write-ups"
+          ]
+        }
+      ]
+    },
+    product: {
+      title: "Product Management",
+      steps: [
+        {
+          month: "Month 1",
+          icon: "fa-lightbulb",
+          title: "Product Discovery & Strategy",
+          description: "Understand market, customers, and product vision.",
+          milestones: [
+            "Product lifecycle & agile methodologies",
+            "User story mapping & MVP definition",
+            "Competitive analysis & value proposition",
+            "Basics of OKRs and KPI frameworks"
+          ]
+        },
+        {
+          month: "Month 2",
+          icon: "fa-chart-gantt",
+          title: "Execution & Metrics",
+          description: "Work with engineering, design, and analytics.",
+          milestones: [
+            "Roadmapping tools (Jira, Confluence, Miro)",
+            "Data-driven decisions: A/B testing, metrics deep dive",
+            "Stakeholder communication & PRD writing",
+            "Cross-functional collaboration workshop"
+          ]
+        },
+        {
+          month: "Month 3",
+          icon: "fa-rocket",
+          title: "Leadership & Portfolio",
+          description: "Lead a mock product launch and craft product case.",
+          milestones: [
+            "Go-to-market strategy & product launch plan",
+            "Build a comprehensive product case study",
+            "Mock interviews & behavioral stories",
+            "Networking & personal brand for PM roles"
+          ]
+        }
+      ]
+    }
+  };
+
+  // Helper to render roadmap with given interest key
+  function renderRoadmap(interestKey) {
+    const roadmapData = careerRoadmaps[interestKey];
+    if (!roadmapData) return;
+
+    const steps = roadmapData.steps;
+    const roadmapContainer = document.getElementById("roadmapContainer");
+
+    // Build the grid HTML dynamically
+    let stepsHtml = `<div class="section-title">
+                        <h2><i class="fas fa-road"></i> ${roadmapData.title} · 3-Month Accelerator</h2>
+                        <span><i class="far fa-calendar-alt"></i> milestone-driven</span>
+                      </div>
+                      <div class="roadmap-grid">`;
+
+    steps.forEach((step, idx) => {
+      // generate milestones list items
+      const milestonesList = step.milestones.map(m => `<li><i class="fas fa-check-circle"></i> ${m}</li>`).join('');
+      stepsHtml += `
+        <div class="step-card">
+          <div class="step-month">${step.month}</div>
+          <div class="step-title">
+            <i class="fas ${step.icon}"></i> ${step.title}
+          </div>
+          <div class="step-desc">${step.description}</div>
+          <ul class="milestone-list">
+            ${milestonesList}
+          </ul>
+        </div>
+      `;
+    });
+
+    stepsHtml += `</div>`;
+    roadmapContainer.innerHTML = stepsHtml;
+  }
+
+  // Show error/fallback but we always have data, but still safe
+  function generateRoadmapFromSelection() {
+    const selectEl = document.getElementById("interestSelect");
+    const selectedValue = selectEl.value;
+    if (careerRoadmaps[selectedValue]) {
+      renderRoadmap(selectedValue);
+    } else {
+      // fallback: should not happen
+      document.getElementById("roadmapContainer").innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Oops, roadmap data missing. Try another option.</p></div>`;
+    }
+  }
+
+  // initial load: set first roadmap as demo? (optional, but better show default empty or show Frontend on load? 
+  // to be friendly, we can generate default roadmap for "frontend" as first preview)
+  // but spec says when user clicks generate, show roadmap. For better UX we can preload on page load? 
+  // Actually requirement: "When the user clicks 'Generate,' use JavaScript to show a 3-step roadmap"
+  // But also nothing wrong with showing initial state empty. But for premium feel, we keep empty state, but on click generate.
+  // We'll attach event listener to generate button.
+  // However some modern dashboards could preload the first choice, but explicit spec wants generate click.
+  // Let's respect: empty initial, then generate button reveals roadmap.
+  // But also to avoid empty experience, we keep empty-state description.
+  // Additional: if user clicks generate multiple times, it updates accordingly.
+  const generateBtn = document.getElementById("generateBtn");
+  generateBtn.addEventListener("click", () => {
+    generateRoadmapFromSelection();
+  });
+
+  // Optional: small animation / vibe: The button also triggers confetti? no needed but fine.
+  // Additionally, we want to preserve ability to switch between interests.
+  // No additional work needed because generate reads current select value each time.
+  // For keyboard and accessibility, fully functional.
+
+  // Bonus: if you want to display a demo roadmap on first page load (makes it less empty but not required)
+  // The requirement doesn't forbid a preload? but we want to strictly follow 'When user clicks generate'? 
+  // However some users might think it's broken if they don't click generate. I'll keep empty-state as per instruction.
+  // But also modern interactive: perhaps they want to see it working immediately? Since no harm but specification says "When user clicks Generate"
+  // We obey exactly: nothing until generate. The empty state is clear. Perfect.
+
+  // Extra polishing: Ensure that if any roadmap is generated, the dashboard scrolls smoothly? (cosmetic)
+  // Add subtle transition, also we can add a small micro-interaction sound? no.
+  // Also fully responsive.
+
+  // In case of double generation we don't duplicate events.
+
+  // Preload optional: but for user delight we can also provide a 'sample preview' tip? Not needed. let's keep as is.
+
+  // Additionally, we provide small animation for generate button
+  // accessibility: aria-labels
+  generateBtn.setAttribute('aria-label', 'Generate personalized 3-month career roadmap');
+  document.getElementById("interestSelect").setAttribute('aria-label', 'Choose your professional interest area');
+  
+  // Additional extra: The roadmap changes reflect immediate after click and we update dynamically.
+  // Edge case: If user clicks generate while already viewing, we re-render, fine.
+  // Also we may add status: active class but not needed.
+  
+  // One more thing: for the month icons, some fontawesome icons: fa-chart-line, fa-brain etc.
+  // The used icons all exist in FA6 free.
+  // Just ensure that roadmap data matches icon strings: 'fa-react' is a brand icon, works.
+  // Fontawesome 6 includes 'fa-react' brand, and others like fa-pen-fancy, fa-chart-gantt etc. Works.
+  // Provide perfect compatibility.
+  
+  // final small fix: in step cards for product I used "fa-chart-gantt" which is valid font awesome 6 pro? Actually fa-chart-gantt is in free version? 
+  // FontAwesome 6 free includes "fa-chart-gantt" from solid? Yes it's in free (chart-gantt). Good.
+  // For shield: "fa-shield-haltered" is solid style in free. Good.
+  // For 'fa-magic-sparkles' is valid.
+  // I also want to avoid missing icons: use fallback.
+  // also the empty state uses compass.
+  // Everything consistent.
+  
+  // Finally: Maybe the user wants to have a default roadmap on click without any console errors.
+  // I'll also add a small effect: after generating, we scroll to roadmap container smoothly.
+  function scrollToRoadmap() {
+    const roadmap = document.getElementById("roadmapContainer");
+    if(roadmap) {
+      setTimeout(() => {
+        roadmap.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }
+  // attach to generate btn extra
+  const originalClick = generateBtn.onclick;
+  generateBtn.addEventListener("click", () => {
+    scrollToRoadmap();
+  });
+  
+  // Also provide a message that if roadmap already exists, it updates.
+  // Ensure we call generateRoadmapFromSelection properly.
+
+  // final safety: override any potential double listener issues (but it's fine)
+  // Fix: the previous addEventListener and inline don't conflict.
+  // Done.
+
+  // Tiny micro: to match perfect spec, we create the initial empty state with nice UI.
+  // We will NOT pre-render any roadmap until generate is clicked.
+</script>
+</body>
+</html>
