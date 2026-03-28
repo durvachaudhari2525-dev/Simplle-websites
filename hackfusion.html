@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>NexusRisk | Student Performance Analyzer</title>
+  <!-- Chart.js CDN for pie charts and bar graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Google Fonts: modern sans + inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 (free icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* WHOLE PAGE BACKGROUND - changes dynamically based on risk */
+    body {
+      min-height: 100vh;
+      transition: background 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    /* Risk-based body backgrounds (full page color) */
+    body.risk-high {
+      background: linear-gradient(135deg, #8b1a1a 0%, #b91c1c 50%, #991b1b 100%);
+    }
+    
+    body.risk-moderate {
+      background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #b45309 100%);
+    }
+    
+    body.risk-low {
+      background: linear-gradient(135deg, #166534 0%, #15803d 50%, #166534 100%);
+    }
+
+    /* Default background (before analysis) */
+    body {
+      background: linear-gradient(135deg, #d4e4e0 0%, #c8ddd4 50%, #b8cfc4 100%);
+    }
+
+    /* MAIN GLOW CONTAINER — enhanced spread effect */
+    .glow-screen {
+      transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      border-radius: 2.5rem;
+      padding: 0.35rem;
+      background: transparent;
+      width: 100%;
+      max-width: 980px;
+    }
+
+    /* Glass card with high contrast for readability */
+    .glass-card {
+      backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, 0.96);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+      padding: 2rem 2rem 2rem 2rem;
+      width: 100%;
+      transition: all 0.2s;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #1f3b2c, #2d5a44, #1f3b2c);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 0.25rem;
+    }
+
+    h1 i {
+      background: linear-gradient(135deg, #1f3b2c, #2d5a44);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 2rem;
+    }
+
+    .sub {
+      color: #2c4a3a;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-top: 6px;
+      margin-bottom: 28px;
+      border-left: 4px solid #2d5a44;
+      padding-left: 14px;
+      background: rgba(45, 90, 68, 0.1);
+      border-radius: 0 12px 12px 0;
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-group label {
+      font-weight: 700;
+      color: #1f3b2c;
+      letter-spacing: 0.3px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-group label i {
+      width: 24px;
+      color: #2d5a44;
+      font-size: 1.1rem;
+    }
+
+    input {
+      background: #ffffff;
+      border: 2px solid #cbdcd0;
+      border-radius: 1.2rem;
+      padding: 14px 18px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #1f3b2c;
+      outline: none;
+      transition: all 0.25s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    input:focus {
+      border-color: #2d5a44;
+      box-shadow: 0 0 0 3px rgba(45, 90, 68, 0.2);
+      background: #ffffff;
+    }
+
+    input::placeholder {
+      color: #a8bcae;
+      font-weight: 400;
+    }
+
+    .row-2col {
+      display: flex;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .row-2col .input-group {
+      flex: 1;
+    }
+
+    button {
+      background: linear-gradient(135deg, #2d5a44, #1f3b2c);
+      border: none;
+      width: 100%;
+      padding: 16px;
+      border-radius: 3rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.25s;
+      margin-top: 12px;
+      box-shadow: 0 8px 20px rgba(31, 59, 44, 0.3);
+      border: 1px solid rgba(255,255,255,0.4);
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #3f6e55, #2d5a44);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(31, 59, 44, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* loading bar container */
+    .loading-area {
+      margin-top: 24px;
+      background: #e2ede6;
+      border-radius: 60px;
+      padding: 6px 12px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid #cbdcd0;
+    }
+
+    .loading-bar-bg {
+      background: #cbdcd0;
+      border-radius: 40px;
+      height: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .loading-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #2d5a44, #1f3b2c);
+      border-radius: 40px;
+      transition: width 0.08s linear;
+    }
+
+    .loading-text {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1f3b2c;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    /* result section - clean and readable */
+    .result-panel {
+      margin-top: 28px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 1.8rem;
+      padding: 1.5rem 1.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s;
+    }
+
+    .score-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      gap: 12px;
+    }
+
+    .score-header span:first-child {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1f3b2c;
+    }
+
+    .score-header span:first-child i {
+      color: #2d5a44;
+      margin-right: 8px;
+    }
+
+    .risk-badge {
+      background: #e2ede6;
+      padding: 8px 20px;
+      border-radius: 60px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      border: 1px solid #cbdcd0;
+      color: #1f3b2c;
+    }
+
+    .score-display-area {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .score-main {
+      flex: 1;
+    }
+
+    .score-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2d5a44;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .score-number {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: #1f3b2c;
+      line-height: 1;
+      margin-top: 4px;
+    }
+
+    /* Bar Graph Container */
+    .bar-chart-container {
+      margin: 25px 0 20px;
+      background: #f9fff9;
+      border-radius: 1.2rem;
+      padding: 1rem;
+      border: 1px solid #cbdcd0;
+    }
+
+    .bar-chart-container canvas {
+      max-height: 280px;
+      width: 100%;
+    }
+
+    .section-title {
+      font-weight: 700;
+      color: #1f3b2c;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title i {
+      color: #2d5a44;
+    }
+
+    /* Double pie chart container */
+    .charts-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .chart-item {
+      flex: 1;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    .chart-item canvas {
+      max-width: 180px;
+      max-height: 180px;
+      margin: 0 auto;
+    }
+
+    .chart-caption {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #2c4a3a;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .metrics-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 24px 0 20px;
+      flex-wrap: wrap;
+    }
+
+    .metric-card {
+      background: #e2ede6;
+      border-radius: 1.2rem;
+      padding: 12px 16px;
+      flex: 1;
+      text-align: center;
+      border: 1px solid #cbdcd0;
+      transition: all 0.2s;
+    }
+
+    .metric-card i {
+      color: #2d5a44;
+      font-size: 1.1rem;
+      margin-right: 6px;
+    }
+
+    .metric-card strong {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #1f3b2c;
+      display: block;
+      margin-top: 6px;
+    }
+
+    .metric-card span {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #2c4a3a;
+      display: block;
+    }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(to right, #cbdcd0, transparent);
+      margin: 16px 0;
+    }
+
+    .analysis-text {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #1f3b2c;
+      background: #f0f7f2;
+      padding: 12px 16px;
+      border-radius: 1rem;
+      border-left: 4px solid #2d5a44;
+      line-height: 1.5;
+    }
+
+    .analysis-text i {
+      color: #2d5a44;
+      margin-right: 8px;
+    }
+
+    footer {
+      font-size: 0.75rem;
+      text-align: center;
+      margin-top: 24px;
+      color: #2c4a3a;
+      font-weight: 500;
+    }
+
+    @media (max-width: 700px) {
+      .glass-card { padding: 1.5rem; }
+      .score-number { font-size: 2.5rem; }
+      .charts-container { flex-direction: column; align-items: center; }
+      .chart-item { width: 100%; max-width: 250px; }
+      h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body id="appBody">
+
+<div class="glow-screen" id="glowWrapper">
+  <div class="glass-card">
+    <h1>
+      <i class="fas fa-chalkboard-user"></i> 
+      Performance Risk Analyzer
+    </h1>
+    <div class="sub">
+      <i class="fas fa-robot"></i> AI-powered risk detection · Bar graph · Dual pie charts · Full-page risk indicator
+    </div>
+
+    <!-- INPUT FORM -->
+    <div>
+      <div class="input-group">
+        <label><i class="fas fa-user-graduate"></i> Student Full Name</label>
+        <input type="text" id="studentName" placeholder="e.g., Maya Patel, Alex Johnson" autocomplete="off">
+      </div>
+      
+      <div class="row-2col">
+        <div class="input-group">
+          <label><i class="fas fa-calendar-check"></i> Attendance (%)</label>
+          <input type="number" id="attendance" step="any" min="0" max="100" placeholder="0 - 100" value="78">
+        </div>
+        <div class="input-group">
+          <label><i class="fas fa-tasks"></i> Assignments Completed (%)</label>
+          <input type="number" id="assignments" step="any" min="0" max="100" placeholder="Completion %" value="65">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label><i class="fas fa-chart-simple"></i> Exam Score (%)</label>
+        <input type="number" id="examScore" step="any" min="0" max="100" placeholder="0 - 100" value="55">
+      </div>
+
+      <button id="analyzeBtn">
+        <i class="fas fa-microchip"></i> ANALYZE RISK SCORE
+      </button>
+    </div>
+
+    <!-- LOADING BAR (AI THINKING) -->
+    <div id="loadingContainer" class="loading-area">
+      <div class="loading-bar-bg">
+        <div id="loadingFill" class="loading-fill"></div>
+      </div>
+      <div class="loading-text"><i class="fas fa-brain"></i> AI IS THINKING... analyzing academic patterns</div>
+    </div>
+
+    <!-- RESULT PANEL (dynamic) -->
+    <div id="resultPanel" class="result-panel" style="display: none;">
+      <div class="score-header">
+        <span><i class="fas fa-id-card"></i> <strong id="resultName">Student</strong></span>
+        <span class="risk-badge" id="riskCategory">--</span>
+      </div>
+      
+      <div class="score-display-area">
+        <div class="score-main">
+          <div class="score-label"><i class="fas fa-chart-line"></i> AI RISK SCORE</div>
+          <div class="score-number" id="finalScoreValue">--</div>
+          <div style="font-size: 0.8rem; color: #2c4a3a; margin-top: 6px;">(1 = high risk, 100 = excellent)</div>
+        </div>
+      </div>
+      
+      <!-- NEW: BAR GRAPH for Attendance, Assignments, Exam Score -->
+      <div class="bar-chart-container">
+        <div class="section-title">
+          <i class="fas fa-chart-bar"></i> Performance Comparison Graph
+        </div>
+        <canvas id="barGraph" width="800" height="280" style="width:100%; height:auto; max-height:280px;"></canvas>
+        <div class="chart-caption" style="margin-top: 8px;">📊 Attendance | Assignments | Exam Score (%)</div>
+      </div>
+      
+      <!-- DOUBLE PIE CHARTS: Attendance + Combined Metrics -->
+      <div class="charts-container">
+        <div class="chart-item">
+          <canvas id="attendancePie" width="200" height="200"></canvas>
+          <div class="chart-caption"><i class="fas fa-user-check"></i> Attendance vs Absence</div>
+        </div>
+        <div class="chart-item">
+          <canvas id="metricsPie" width="200" height="200"></canvas>
+          <div class="chart-caption"><i class="fas fa-chart-pie"></i> Performance Breakdown (Attend/Assign/Exam)</div>
+        </div>
+      </div>
+      
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <i class="fas fa-user-check"></i> <span>Attendance</span>
+          <strong id="metricAttend">--%</strong>
+        </div>
+        <div class="metric-card">
+          <i class="fas fa-file-alt"></i> <span>Assignments</span>
+          <strong id="metricAssign">--%</strong>
+        </div>
+        <div class="metric-card">
+          <i class="fas fa-pen-fancy"></i> <span>Exam Score</span>
+          <strong id="metricExam">--%</strong>
+        </div>
+      </div>
+      
+      <hr>
+      <div class="analysis-text" id="analysisText">
+        <i class="fas fa-microchip"></i> AI insight will appear here
+      </div>
+    </div>
+    <footer>
+      <i class="fas fa-chart-bar"></i> Bar graph + Dual pie charts · Full-page risk indicator · Smart AI insights
+    </footer>
+  </div>
+</div>
+
+<script>
+  // ----- DOM elements -----
+  const appBody = document.getElementById('appBody');
+  const studentNameInput = document.getElementById('studentName');
+  const attendanceInput = document.getElementById('attendance');
+  const assignmentsInput = document.getElementById('assignments');
+  const examScoreInput = document.getElementById('examScore');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const loadingContainer = document.getElementById('loadingContainer');
+  const loadingFill = document.getElementById('loadingFill');
+  const resultPanel = document.getElementById('resultPanel');
+  const resultNameSpan = document.getElementById('resultName');
+  const riskCategorySpan = document.getElementById('riskCategory');
+  const finalScoreValueSpan = document.getElementById('finalScoreValue');
+  const metricAttendSpan = document.getElementById('metricAttend');
+  const metricAssignSpan = document.getElementById('metricAssign');
+  const metricExamSpan = document.getElementById('metricExam');
+  const analysisTextSpan = document.getElementById('analysisText');
+  
+  let attendancePieChart = null;
+  let metricsPieChart = null;
+  let barGraphChart = null;
+  
+  // AI scoring algorithm (intelligent weighted risk)
+  function computeAIPerformanceScore(att, assign, exam) {
+    att = Math.min(100, Math.max(0, att));
+    assign = Math.min(100, Math.max(0, assign));
+    exam = Math.min(100, Math.max(0, exam));
+    
+    let weightedScore = (att * 0.30) + (assign * 0.25) + (exam * 0.45);
+    
+    let consistencyBonus = 0;
+    if (att >= 70 && assign >= 70 && exam >= 70) consistencyBonus = 5;
+    else if (att >= 60 && assign >= 60 && exam >= 60) consistencyBonus = 3;
+    else if (att >= 50 && assign >= 50 && exam >= 50) consistencyBonus = 1;
+    
+    let penalty = 0;
+    if (att < 35) penalty += 4;
+    if (assign < 35) penalty += 3;
+    if (exam < 35) penalty += 5;
+    
+    let finalRaw = weightedScore + consistencyBonus - penalty;
+    if (exam >= 90 && att >= 70) finalRaw += 2;
+    
+    let finalScore = Math.round(finalRaw);
+    finalScore = Math.min(100, Math.max(1, finalScore));
+    return finalScore;
+  }
+  
+  function generateAIInsight(score, att, assign, exam, studentName) {
+    let name = studentName.trim() || "The student";
+    if (score >= 85) {
+      return `🎯 EXCELLENT! ${name} demonstrates outstanding academic consistency. Balanced performance across attendance (${att}%), assignments (${assign}%), and exams (${exam}%) places them in the low-risk category. Keep excelling!`;
+    }
+    if (score >= 70) {
+      let weak = att < 75 ? "attendance" : (assign < 75 ? "assignment completion" : "exam scores");
+      return `✅ GOOD STANDING. ${name} shows stable performance with a score of ${score}. Focus on improving ${weak} to reach excellence. Consistent effort is paying off.`;
+    }
+    if (score >= 50) {
+      let focus = getWeakMetric(att, assign, exam);
+      return `⚠️ MODERATE RISK. ${name} is near the warning threshold (score ${score}). Immediate focus on ${focus} can help reduce risk significantly. Consider additional support.`;
+    }
+    if (score >= 35) {
+      return `🔴 ELEVATED RISK. ${name} requires intervention. Critical gaps in ${getWeakMetric(att, assign, exam)} are affecting overall performance. Academic mentoring recommended.`;
+    }
+    return `❗ CRITICAL ALERT. ${name} is at severe academic risk. Urgent support needed across all metrics, especially ${getWeakMetric(att, assign, exam)}. Contact advisor immediately.`;
+  }
+  
+  function getWeakMetric(att, assign, exam) {
+    if (att <= assign && att <= exam) return `attendance (${att}%) — impacts learning continuity`;
+    if (assign <= att && assign <= exam) return `assignments (${assign}%) — incomplete submissions`;
+    return `exam scores (${exam}%) — assessment performance needs improvement`;
+  }
+  
+  // Update FULL PAGE background based on risk score
+  function updateFullPageRiskColor(score) {
+    appBody.classList.remove('risk-high', 'risk-moderate', 'risk-low');
+    
+    if (score < 50) {
+      appBody.classList.add('risk-high');
+    } else if (score >= 50 && score <= 70) {
+      appBody.classList.add('risk-moderate');
+    } else {
+      appBody.classList.add('risk-low');
+    }
+  }
+  
+  // Render bar graph for attendance, assignments, exam
+  function renderBarGraph(att, assign, exam) {
+    const ctx = document.getElementById('barGraph').getContext('2d');
+    
+    if (barGraphChart) {
+      barGraphChart.data.datasets[0].data = [att, assign, exam];
+      barGraphChart.update();
+    } else {
+      barGraphChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Attendance', 'Assignments', 'Exam Score'],
+          datasets: [{
+            label: 'Percentage (%)',
+            data: [att, assign, exam],
+            backgroundColor: ['#2d5a44', '#5f8b72', '#9bc0ab'],
+            borderColor: ['#1f3b2c', '#2d5a44', '#4a6b5f'],
+            borderWidth: 1.5,
+            borderRadius: 8,
+            barPercentage: 0.65,
+            categoryPercentage: 0.8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => `${context.raw}%`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Score (%)',
+                color: '#2c4a3a',
+                font: { weight: 'bold', size: 11 }
+              },
+              grid: {
+                color: '#cbdcd0'
+              },
+              ticks: {
+                color: '#1f3b2c'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Metrics',
+                color: '#2c4a3a',
+                font: { weight: 'bold', size: 11 }
+              },
+              ticks: {
+                color: '#1f3b2c',
+                font: { weight: '500' }
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+  
+  // Render attendance pie chart
+  function renderAttendancePie(attendancePercent) {
+    const ctx = document.getElementById('attendancePie').getContext('2d');
+    const attended = Math.min(100, Math.max(0, attendancePercent));
+    const missed = 100 - attended;
+    
+    if (attendancePieChart) {
+      attendancePieChart.data.datasets[0].data = [attended, missed];
+      attendancePieChart.update();
+    } else {
+      attendancePieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Present', 'Absent'],
+          datasets: [{
+            data: [attended, missed],
+            backgroundColor: ['#2d5a44', '#c08484'],
+            borderColor: '#ffffff',
+            borderWidth: 2,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#1f3b2c',
+                font: { size: 11, weight: 'bold' },
+                usePointStyle: true
+              }
+            },
+            tooltip: { callbacks: { label: (context) => `${context.label}: ${context.raw.toFixed(1)}%` } }
+          }
+        }
+      });
+    }
+  }
+  
+  // Render comprehensive metrics pie chart
+  function renderMetricsPie(att, assign, exam) {
+    const ctx = document.getElementById('metricsPie').getContext('2d');
+    
+    if (metricsPieChart) {
+      metricsPieChart.data.datasets[0].data = [att, assign, exam];
+      metricsPieChart.update();
+    } else {
+      metricsPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Attendance', 'Assignments', 'Exam Score'],
+          datasets: [{
+            data: [att, assign, exam],
+            backgroundColor: ['#2d5a44', '#5f8b72', '#9bc0ab'],
+            borderColor: '#ffffff',
+            borderWidth: 2,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#1f3b2c',
+                font: { size: 11, weight: 'bold' },
+                usePointStyle: true
+              }
+            },
+            tooltip: { 
+              callbacks: { 
+                label: (context) => `${context.label}: ${context.raw.toFixed(1)}%` 
+              }
+            }
+          }
+        }
+      });
+    }
+  }
+  
+  // Loading simulation (1 second)
+  function simulateLoadingAndShowResult() {
+    return new Promise((resolve) => {
+      loadingContainer.style.display = "flex";
+      let width = 0;
+      const interval = setInterval(() => {
+        width += 10;
+        loadingFill.style.width = width + "%";
+        if (width >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            loadingContainer.style.display = "none";
+            resolve();
+          }, 80);
+        }
+      }, 92);
+    });
+  }
+  
+  // Main analysis handler
+  async function handleAnalyze() {
+    let name = studentNameInput.value.trim();
+    if (name === "") {
+      name = "Anonymous Student";
+      studentNameInput.value = name;
+    }
+    
+    let attendance = parseFloat(attendanceInput.value);
+    let assignments = parseFloat(assignmentsInput.value);
+    let exam = parseFloat(examScoreInput.value);
+    
+    if (isNaN(attendance)) attendance = 0;
+    if (isNaN(assignments)) assignments = 0;
+    if (isNaN(exam)) exam = 0;
+    
+    attendance = Math.min(100, Math.max(0, attendance));
+    assignments = Math.min(100, Math.max(0, assignments));
+    exam = Math.min(100, Math.max(0, exam));
+    
+    attendanceInput.value = attendance;
+    assignmentsInput.value = assignments;
+    examScoreInput.value = exam;
+    
+    const riskScore = computeAIPerformanceScore(attendance, assignments, exam);
+    
+    await simulateLoadingAndShowResult();
+    
+    resultNameSpan.innerText = name;
+    finalScoreValueSpan.innerText = riskScore;
+    metricAttendSpan.innerText = attendance + "%";
+    metricAssignSpan.innerText = assignments + "%";
+    metricExamSpan.innerText = exam + "%";
+    
+    let riskText = "";
+    if (riskScore < 50) riskText = "🔴 HIGH RISK - Needs Immediate Intervention";
+    else if (riskScore >= 50 && riskScore <= 70) riskText = "🟡 MODERATE RISK - Monitor Progress";
+    else riskText = "🟢 LOW RISK - On Track";
+    riskCategorySpan.innerHTML = riskText;
+    
+    const insightMsg = generateAIInsight(riskScore, attendance, assignments, exam, name);
+    analysisTextSpan.innerHTML = `<i class="fas fa-microchip"></i> ${insightMsg}`;
+    
+    // Update full page background
+    updateFullPageRiskColor(riskScore);
+    
+    // Render all charts: bar graph + pie charts
+    renderBarGraph(attendance, assignments, exam);
+    renderAttendancePie(attendance);
+    renderMetricsPie(attendance, assignments, exam);
+    
+    resultPanel.style.display = "block";
+    resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  
+  function resetLoadingBar() {
+    loadingFill.style.width = "0%";
+  }
+  
+  analyzeBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    resetLoadingBar();
+    resultPanel.style.display = "none";
+    await handleAnalyze();
+  });
+  
+  const allInputs = [studentNameInput, attendanceInput, assignmentsInput, examScoreInput];
+  allInputs.forEach(field => {
+    field.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        analyzeBtn.click();
+      }
+    });
+  });
+  
+  function setupNumberClamping() {
+    [attendanceInput, assignmentsInput, examScoreInput].forEach(inp => {
+      inp.addEventListener('change', function() {
+        let v = parseFloat(this.value);
+        if (isNaN(v)) v = 0;
+        v = Math.min(100, Math.max(0, v));
+        this.value = v;
+      });
+    });
+  }
+  setupNumberClamping();
+  
+  // Initial neutral state
+  appBody.classList.remove('risk-high', 'risk-moderate', 'risk-low');
+  studentNameInput.placeholder = "e.g., Maya Patel, Alex Johnson";
+</script>
+</body>
+</html>
